@@ -1,0 +1,33 @@
+{
+  "concepto": "Sistemas Inteligentes",
+  "definicion": "Los sistemas inteligentes son sistemas computacionales que pueden percibir su entorno, aprender de la experiencia y tomar decisiones para alcanzar objetivos específicos.",
+  "caracteristicas": [
+    "Capacidad de aprendizaje",
+    "Adaptabilidad al entorno",
+    "Toma de decisiones autónoma",
+    "Procesamiento de información compleja",
+    "Interacción con humanos"
+  ],
+  "aplicaciones": {
+    "salud": "Diagnóstico médico asistido por IA, análisis de imágenes médicas, drug discovery",
+    "educacion": "Sistemas tutoriales inteligentes, personalización del aprendizaje, evaluación automática",
+    "transporte": "Vehículos autónomos, optimización de rutas, gestión de tráfico",
+    "finanzas": "Detección de fraudes, trading algorítmico, evaluación de riesgos",
+    "retail": "Sistemas de recomendación, optimización de inventario, análisis de sentimientos"
+  },
+  "tecnologias_clave": [
+    "Machine Learning",
+    "Deep Learning",
+    "Procesamiento de Lenguaje Natural",
+    "Visión Computacional",
+    "Robótica",
+    "Sistemas Expertos"
+  ],
+  "desafios": [
+    "Interpretabilidad de modelos",
+    "Sesgos en los datos",
+    "Privacidad y seguridad",
+    "Escalabilidad",
+    "Integración con sistemas existentes"
+  ]
+}

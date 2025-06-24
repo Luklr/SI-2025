@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema RAG - Consulta de Base de Datos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .tab:hover {
+            color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .query-section {
+            margin-bottom: 30px;
+        }
+
+        .query-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .query-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .query-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .query-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .query-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .response-content {
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .expanded-query {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sources {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .source-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .upload-section {
+            border: 2px dashed #3498db;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-section.dragover {
+            background: #e8f4f8;
+            border-color: #2980b9;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-button {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .sources-list {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .source-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .delete-button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .delete-button:hover {
+            background: #c0392b;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .info-box {
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            margin-bottom: 10px;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Sistema RAG</h1>
+            <p>Consulta tu base de datos usando lenguaje natural</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('query')">Consultar</button>
+                <button class="tab" onclick="showTab('upload')">Documentos</button>
+                <button class="tab" onclick="showTab('sources')">Fuentes</button>
+                <button class="tab" onclick="showTab('config')">Configuración</button>
+            </div>
+
+            <!-- Tab de Consulta -->
+            <div id="query-tab" class="tab-content active">
+                <div class="info-box">
+                    <h3>💡 Cómo usar el sistema</h3>
+                    <p>Escribe tu pregunta en lenguaje natural y el sistema buscará la información más relevante en tu base de datos. El sistema utiliza una arquitectura de tres módulos: expansión de consulta, recuperación y generación de respuesta.</p>
+                </div>
+
+                <div class="query-section">
+                    <div class="query-form">
+                        <input type="text" id="queryInput" class="query-input" 
+                               placeholder="Escribe tu pregunta aquí... (ej: ¿Cuáles son los beneficios de la inteligencia artificial?)"
+                               onkeypress="handleKeyPress(event)">
+                        <button class="query-button" onclick="submitQuery()" id="queryButton">
+                            Consultar
+                        </button>
+                    </div>
+
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Procesando consulta...</p>
+                    </div>
+
+                    <div id="response" class="response-section" style="display: none;">
+                        <div id="expanded-query" class="expanded-query" style="display: none;">
+                            <h4>🔍 Consulta expandida:</h4>
+                            <p id="expanded-query-text"></p>
+                        </div>
+                        
+                        <div class="response-content" id="response-content"></div>
+                        
+                        <div class="metrics" id="metrics" style="display: none;">
+                            <div class="metric">
+                                <div class="metric-value" id="retrieval-time">0.0s</div>
+                                <div class="metric-label">Tiempo de Recuperación</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="generation-time">0.0s</div>
+                                <div class="metric-label">Tiempo de Generación</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="sources-count">0</div>
+                                <div class="metric-label">Fuentes Consultadas</div>
+                            </div>
+                        </div>
+
+                        <div class="sources" id="sources" style="display: none;">
+                            <h4>📚 Fuentes consultadas:</h4>
+                            <div id="sources-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Documentos -->
+            <!-- <div id="upload-tab" class="tab-content">
+                <div class="info-box">
+                    <h3>📄 Agregar Documentos</h3>
+                    <p>Sube documentos para que el sistema pueda consultarlos. Soporta archivos de texto (.txt) y JSON (.json).</p>
+                </div>
+
+                <div class="upload-section" id="uploadSection">
+                    <h3>📁 Subir Archivo</h3>
+                    <p>Arrastra y suelta un archivo aquí o haz clic para seleccionar</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".txt,.json" onchange="handleFileUpload(event)">
+                    <button class="upload-button" onclick="document.getElementById('fileInput').click()">
+                        Seleccionar Archivo
+                    </button>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3>✍️ Agregar Texto Directo</h3>
+                    <textarea id="textContent" placeholder="Escribe o pega tu texto aquí..." 
+                              style="width: 100%; height: 200px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; resize: vertical;"></textarea>
+                    <br><br>
+                    <input type="text" id="textSource" placeholder="Nombre de la fuente (ej: manual-usuario.txt)" 
+                           style="width: 300px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; margin-right: 15px;">
+                    <button class="upload-button" onclick="submitTextDocument()">
+                        Agregar Texto
+                    </button>
+                </div>
+            </div> -->
+
+            <!-- Tab de Fuentes -->
+            <div id="sources-tab" class="tab-content">
+                <div class="info-box">
+                    <h3>📚 Fuentes Disponibles</h3>
+                    <p>Gestiona las fuentes de información disponibles en tu base de datos.</p>
+                </div>
+
+                <div class="sources-list" id="sourcesList">
+                    <div class="loading" id="sourcesLoading">
+                        <div class="spinner"></div>
+                        <p>Cargando fuentes...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab de Configuración -->
+            <div id="config-tab" class="tab-content">
+                <div class="info-box">
+                    <h3>⚙️ Configuración del Sistema</h3>
+                    <p>Información sobre la configuración actual del sistema RAG.</p>
+                </div>
+
+                <div class="sources-list" id="configInfo">
+                    <div class="loading" id="configLoading">
+                        <div class="spinner"></div>
+                        <p>Cargando configuración...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        const API_BASE = '';
+        let currentTab = 'query';
+
+        // Funciones de navegación
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Mostrar el tab seleccionado
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            currentTab = tabName;
+
+            // Cargar datos específicos del tab
+            if (tabName === 'sources') {
+                loadSources();
+            } else if (tabName === 'config') {
+                loadConfig();
+            }
+        }
+
+        // Función para manejar Enter en el input de consulta
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                submitQuery();
+            }
+        }
+
+        // Función para enviar consulta
+        async function submitQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                showMessage('Por favor, ingresa una consulta', 'error');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const response = document.getElementById('response');
+            const queryButton = document.getElementById('queryButton');
+
+            // Mostrar loading
+            loading.classList.add('show');
+            response.style.display = 'none';
+            queryButton.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    displayResponse(data);
+                } else {
+                    showMessage(data.detail || 'Error en la consulta', 'error');
+                }
+            } catch (error) {
+                showMessage('Error de conexión: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+                queryButton.disabled = false;
+            }
+        }
+
+        // Función para mostrar respuesta
+        function displayResponse(data) {
+            const response = document.getElementById('response');
+            const responseContent = document.getElementById('response-content');
+            const expandedQuery = document.getElementById('expanded-query');
+            const expandedQueryText = document.getElementById('expanded-query-text');
+            const metrics = document.getElementById('metrics');
+            const sources = document.getElementById('sources');
+            const sourcesList = document.getElementById('sources-list');
+
+            // Mostrar respuesta principal
+            responseContent.innerHTML = `<h3>💬 Respuesta:</h3><p>${data.response}</p>`;
+
+            // Mostrar consulta expandida si es diferente
+            if (data.expanded_query && data.expanded_query !== data.query) {
+                expandedQueryText.textContent = data.expanded_query;
+                expandedQuery.style.display = 'block';
+            } else {
+                expandedQuery.style.display = 'none';
+            }
+
+            // Mostrar métricas
+            document.getElementById('retrieval-time').textContent = `${data.retrieval_time.toFixed(3)}s`;
+            document.getElementById('generation-time').textContent = `${data.generation_time.toFixed(3)}s`;
+            document.getElementById('sources-count').textContent = data.sources.length;
+            metrics.style.display = 'grid';
+
+            // Mostrar fuentes
+            if (data.sources.length > 0) {
+                sourcesList.innerHTML = '';
+                data.sources.forEach((source, index) => {
+                    const sourceItem = document.createElement('div');
+                    sourceItem.className = 'source-item';
+                    const similarity = data.similarity_scores[index] || 0;
+                    sourceItem.innerHTML = `
+                        <strong>${source}</strong>
+                        <span style="color: #666; font-size: 14px;">Similitud: ${(similarity * 100).toFixed(1)}%</span>
+                    `;
+                    sourcesList.appendChild(sourceItem);
+                });
+                sources.style.display = 'block';
+            } else {
+                sources.style.display = 'none';
+            }
+
+            response.style.display = 'block';
+        }
+
+        // Función para manejar subida de archivos
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            uploadFile(file);
+        }
+
+        // Función para subir archivo
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch(`${API_BASE}/documents/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showMessage(`Archivo "${file.name}" subido exitosamente. Chunks procesados: ${data.chunks_added}`, 'success');
+                    document.getElementById('fileInput').value = '';
+                } else {
+                    showMessage(data.detail || 'Error subiendo archivo', 'error');
+                }
+            } catch (error) {
+                showMessage('Error de conexión: ' + error.message, 'error');
+            }
+        }
+
+        // Función para enviar texto directo
+        async function submitTextDocument() {
+            const content = document.getElementById('textContent').value.trim();
+            const source = document.getElementById('textSource').value.trim();
+
+            if (!content || !source) {
+                showMessage('Por favor, completa el contenido y el nombre de la fuente', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/documents/text`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        source: source
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showMessage(`Documento "${source}" agregado exitosamente. Chunks procesados: ${data.chunks_added}`, 'success');
+                    document.getElementById('textContent').value = '';
+                    document.getElementById('textSource').value = '';
+                } else {
+                    showMessage(data.detail || 'Error agregando documento', 'error');
+                }
+            } catch (error) {
+                showMessage('Error de conexión: ' + error.message, 'error');
+            }
+        }
+
+        // Función para cargar fuentes
+        async function loadSources() {
+            const sourcesLoading = document.getElementById('sourcesLoading');
+            const sourcesList = document.getElementById('sourcesList');
+
+            sourcesLoading.style.display = 'block';
+
+            try {
+                const res = await fetch(`${API_BASE}/sources`);
+                const sources = await res.json();
+
+                sourcesLoading.style.display = 'none';
+
+                if (sources.length === 0) {
+                    sourcesList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No hay fuentes disponibles. Sube algunos documentos primero.</p>';
+                } else {
+                    sourcesList.innerHTML = sources.map(source => `
+                        <div class="source-list-item">
+                            <span><strong>${source}</strong></span>
+                            <button class="delete-button" onclick="deleteSource('${source}')">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                sourcesLoading.style.display = 'none';
+                sourcesList.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 20px;">Error cargando fuentes: ' + error.message + '</p>';
+            }
+        }
+
+        // Función para eliminar fuente
+        async function deleteSource(sourceName) {
+            if (!confirm(`¿Estás seguro de que quieres eliminar la fuente "${sourceName}"?`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/sources/${encodeURIComponent(sourceName)}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showMessage(data.message, 'success');
+                    loadSources(); // Recargar la lista
+                } else {
+                    showMessage(data.detail || 'Error eliminando fuente', 'error');
+                }
+            } catch (error) {
+                showMessage('Error de conexión: ' + error.message, 'error');
+            }
+        }
+
+        // Función para cargar configuración
+        async function loadConfig() {
+            const configLoading = document.getElementById('configLoading');
+            const configInfo = document.getElementById('configInfo');
+
+            configLoading.style.display = 'block';
+
+            try {
+                const res = await fetch(`${API_BASE}/config`);
+                const config = await res.json();
+
+                configLoading.style.display = 'none';
+
+                configInfo.innerHTML = `
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-value">${config.db_type.toUpperCase()}</div>
+                            <div class="metric-label">Tipo de Base de Datos</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${config.llm_model}</div>
+                            <div class="metric-label">Modelo LLM</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${config.embedding_model}</div>
+                            <div class="metric-label">Modelo de Embeddings</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${config.chunk_size}</div>
+                            <div class="metric-label">Tamaño de Chunks</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${config.similarity_top_k}</div>
+                            <div class="metric-label">Top K Resultados</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${config.temperature}</div>
+                            <div class="metric-label">Temperatura LLM</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                configLoading.style.display = 'none';
+                configInfo.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 20px;">Error cargando configuración: ' + error.message + '</p>';
+            }
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            document.querySelector('.main-content').insertBefore(messageDiv, document.querySelector('.tabs').nextSibling);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Setup de drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadSection = document.getElementById('uploadSection');
+            
+            uploadSection.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadSection.classList.add('dragover');
+            });
+            
+            uploadSection.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadSection.classList.remove('dragover');
+            });
+            
+            uploadSection.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadSection.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    uploadFile(files[0]);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
