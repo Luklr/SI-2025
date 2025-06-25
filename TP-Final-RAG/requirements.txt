@@ -1,0 +1,9 @@
+flask
+langraph
+langchain_google_genai
+langchain_core
+langchain_community
+sqlalchemy
+pandas
+python-dotenv
+typing_extensions
