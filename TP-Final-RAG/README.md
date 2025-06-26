@@ -8,7 +8,7 @@ Sistema de consultas en lenguaje natural sobre bases de datos usando LLM (Google
 ```bash
 pip install -r requirements.txt
 ```
-# O bien, instala manualmente:
+O bien, instalar manualmente:
 ```bash
 pip install flask langraph langchain_google_genai langchain_core langchain_community sqlalchemy pandas python-dotenv typing_extensions
 ```
