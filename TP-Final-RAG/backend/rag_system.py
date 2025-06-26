@@ -193,27 +193,28 @@ class RagSystem:
     def response(self, consulta: str):
         # Ejecutar el pipeline completo
         resultado_completo = None
-        
+        print()
+        print("-" * 50)
         for paso in self.grafo_rag_sql.stream(
             {"pregunta": consulta}, stream_mode="updates"
         ):
             for nombre_nodo, datos in paso.items():
                 if nombre_nodo == "expandir_consulta":
-                    print("🔍 **Expansión de consulta:**")
+                    print("Expansión de consulta:")
                     print(f"   Pregunta expandida: {datos['pregunta_expandida']}\n")
                 
                 elif nombre_nodo == "generar_sql":
-                    print("💾 **Generación SQL:**")
+                    print("Generación SQL:")
                     print(f"   ```sql\n   {datos['consulta_sql']}\n   ```\n")
                 
                 elif nombre_nodo == "ejecutar_sql":
-                    print("⚡ **Ejecución SQL:**")
+                    print("Ejecución SQL:")
                     print(f"   Resultado: {datos['resultado_sql']}\n")
                 
                 elif nombre_nodo == "generar_respuesta":
-                    print("💬 **Respuesta final:**")
+                    print("Respuesta final:")
                     print(f"   {datos['respuesta']}\n")
                     resultado_completo = datos['respuesta']
         
-        print("✅ **Proceso RAG SQL completado.**")
+        print("Proceso RAG SQL completado.")
         return resultado_completo

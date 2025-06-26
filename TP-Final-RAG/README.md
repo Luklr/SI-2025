@@ -10,7 +10,7 @@ pip install -r requirements.txt
 ```
 O bien, instalar manualmente:
 ```bash
-pip install flask langraph langchain_google_genai langchain_core langchain_community sqlalchemy pandas python-dotenv typing_extensions
+pip install flask langgraph langchain_google_genai langchain_core langchain_community sqlalchemy pandas python-dotenv typing_extensions
 ```
 
 ### 2. Configurar API Key
